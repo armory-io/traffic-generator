@@ -55,7 +55,7 @@ var (
 func main() {
 	flag.IntVar(&concurrency, "concurrency", 1, "how many requests to concurrently run")
 	flag.StringVar(&url, "url", "http://localhost:8000", "host name")
-	flag.IntVar(&maxRequests, "max-requests", 0, "Total number of requests")
+	flag.IntVar(&maxRequests, "max-requests", 0, "Total number of requests. A value of 0 is infinite max requests")
 	flag.DurationVar(&requestInterval, "request-interval", 0, "Time in millisconds between requests added to the channel")
 	flag.Parse()
 

@@ -29,10 +29,15 @@ func addFixedRequests(reqCh chan int, maxRequests int) {
 	}
 }
 
-func addInifiniteRequests(reqCh chan int, d time.Duration) {
+func addInifiniteRequests(reqCh chan int, maxRequests int, d time.Duration) {
 	ticker := time.NewTicker(d)
+	completedRequests := 0
 	for range ticker.C {
 		reqCh <- 1
+		completedRequests++
+		if completedRequests > maxRequests {
+			ticker.Stop()
+		}
 	}
 }
 
@@ -46,17 +51,17 @@ func main() {
 	flag.IntVar(&concurrency, "concurrency", 1, "how many requests to concurrently run")
 	flag.StringVar(&url, "url", "http://localhost:8000", "host name")
 	flag.IntVar(&maxRequests, "max-requests", 0, "Total number of requests")
-	flag.DurationVar(&requestInterval, "request-interval", time.Millisecond*10, "Time in millisconds between requests added to the channel")
+	flag.DurationVar(&requestInterval, "request-interval", 0, "Time in millisconds between requests added to the channel")
 	flag.Parse()
 
 	log.Info("Traffic Generator started...")
 	reqCh := make(chan int, concurrency)
 	_ = 0
 
-	if maxRequests > 0 {
+	if maxRequests > 0 && requestInterval == 0 {
 		go addFixedRequests(reqCh, maxRequests)
 	} else {
-		go addInifiniteRequests(reqCh, requestInterval)
+		go addInifiniteRequests(reqCh, maxRequests, requestInterval)
 	}
 
 	log.Info("Looping through requests")

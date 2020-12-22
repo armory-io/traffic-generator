@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"time"
 
@@ -11,6 +13,9 @@ import (
 func fulfillRequest(url string) int {
 	log.Info("Making requests to:" + url)
 	resp, err := http.Get(url)
+	defer resp.Body.Close()
+	io.Copy(ioutil.Discard, resp.Body)
+
 	if err != nil {
 		log.Errorf("Finished with error: %v", err)
 		return 0
@@ -56,7 +61,6 @@ func main() {
 
 	log.Info("Traffic Generator started...")
 	reqCh := make(chan int, concurrency)
-	_ = 0
 
 	if maxRequests > 0 && requestInterval == 0 {
 		go addFixedRequests(reqCh, maxRequests)

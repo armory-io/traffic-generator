@@ -14,7 +14,7 @@ func fulfillRequest(url string) int {
 	log.Info("Making requests to:" + url)
 	resp, err := http.Get(url)
 	defer resp.Body.Close()
-	io.Copy(ioutil.Discard, resp.Body)
+	w, _ := io.Copy(ioutil.Discard, resp.Body)
 
 	if err != nil {
 		log.Errorf("Finished with error: %v", err)
@@ -23,6 +23,7 @@ func fulfillRequest(url string) int {
 		log.Errorf("Finished with status code over 400, code was: %d", resp.StatusCode)
 		return 0
 	}
+	log.Infof("Recieved status code: %d when call url: %s with %d bytes", resp.StatusCode, url, w)
 	return 1
 }
 func addFixedRequests(reqCh chan int, maxRequests int) {

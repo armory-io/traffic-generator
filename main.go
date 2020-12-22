@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"io"
-	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -14,7 +14,8 @@ func fulfillRequest(url string) int {
 	log.Info("Making requests to:" + url)
 	resp, err := http.Get(url)
 	defer resp.Body.Close()
-	w, _ := io.Copy(ioutil.Discard, resp.Body)
+	buf := new(strings.Builder)
+	w, _ := io.Copy(buf, resp.Body)
 
 	if err != nil {
 		log.Errorf("Finished with error: %v", err)
@@ -24,6 +25,9 @@ func fulfillRequest(url string) int {
 		return 0
 	}
 	log.Infof("Recieved status code: %d when call url: %s with %d bytes", resp.StatusCode, url, w)
+	if debug {
+		log.Info("response data:" + buf.String())
+	}
 	return 1
 }
 func addFixedRequests(reqCh chan int, maxRequests int) {
@@ -48,6 +52,7 @@ func addInifiniteRequests(reqCh chan int, maxRequests int, d time.Duration) {
 }
 
 var (
+	debug                    bool
 	url                      string
 	maxRequests, concurrency int
 	requestInterval          time.Duration
@@ -58,6 +63,7 @@ func main() {
 	flag.StringVar(&url, "url", "http://localhost:8000", "host name")
 	flag.IntVar(&maxRequests, "max-requests", 0, "Total number of requests. A value of 0 is infinite max requests")
 	flag.DurationVar(&requestInterval, "request-interval", 0, "Time in millisconds between requests added to the channel")
+	flag.BoolVar(&debug, "debug", false, "Should we display debug info on the calls")
 	flag.Parse()
 
 	log.Info("Traffic Generator started...")

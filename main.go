@@ -40,7 +40,7 @@ func addInifiniteRequests(reqCh chan int, maxRequests int, d time.Duration) {
 	for range ticker.C {
 		reqCh <- 1
 		completedRequests++
-		if completedRequests > maxRequests {
+		if maxRequests > 0 && completedRequests > maxRequests {
 			ticker.Stop()
 		}
 	}
@@ -64,8 +64,10 @@ func main() {
 
 	if maxRequests > 0 && requestInterval == 0 {
 		go addFixedRequests(reqCh, maxRequests)
-	} else {
+	} else if requestInterval > 0 {
 		go addInifiniteRequests(reqCh, maxRequests, requestInterval)
+	} else {
+		go addInifiniteRequests(reqCh, maxRequests, time.Millisecond*10)
 	}
 
 	log.Info("Looping through requests")
